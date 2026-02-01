@@ -1,4 +1,4 @@
-"""LLM and Jedi suggestion providers; debounced AutoSuggest for ghost text."""
+"""LLM-based suggestion provider; debounced AutoSuggest for ghost text."""
 
 import threading
 import time
@@ -9,31 +9,10 @@ from prompt_toolkit.document import Document
 
 from src.config import get_config
 
-# Jedi is fast enough to call synchronously so ghost text appears immediately.
-# LLM is slow, so we use a debounced worker and cache (suggestion appears after next keypress or short wait).
-_USE_JEDI_SYNC = True
 
-
-def _jedi_completion(text: str, cursor_position: int) -> str | None:
-    """Return continuation string from Jedi completions (suffix to insert), or None."""
-    try:
-        import jedi
-    except ImportError:
-        return None
-    try:
-        script = jedi.Script(text, path="<input>")
-        before = text[:cursor_position]
-        lines = before.split("\n")
-        line = len(lines)  # 1-based
-        column = len(lines[-1]) if lines else 0  # 0-based
-        completions = script.complete(line, column)
-        if not completions:
-            return None
-        c = completions[0]
-        # Jedi Completion.complete is the suffix to insert (e.g. "ad" for "load")
-        return getattr(c, "complete", None) or c.name
-    except Exception:
-        return None
+def _no_completion(_text: str, _cursor_position: int) -> str | None:
+    """No-op when no API key is set (no suggestions)."""
+    return None
 
 
 def _llm_completion(
@@ -47,7 +26,7 @@ def _llm_completion(
     if not api_key:
         return None
     model = config.get("openai_model") or "gpt-4o-mini"
-    max_tokens = config.get("openai_max_tokens") or 120
+    max_tokens = config.get("openai_max_tokens") or 200
     before_cursor = text[:cursor_position]
     after_cursor = text[cursor_position:]
     try:
@@ -110,15 +89,15 @@ class _LLMError(Exception):
 
 
 def get_suggestion_provider() -> Callable[[str, int], str | None]:
-    """Return a function (text, cursor_position) -> continuation or None. Prefers LLM if configured, else Jedi."""
+    """Return the LLM completion function when API key is set, else a no-op."""
     config = get_config()
     if (config.get("openai_api_key") or "").strip():
         return _llm_completion
-    return _jedi_completion
+    return _no_completion
 
 
 class CodeSuggestAutoSuggest(AutoSuggest):
-    """AutoSuggest that shows code completions (Jedi or LLM). Jedi runs sync for instant ghost text; LLM uses debounced cache."""
+    """AutoSuggest that uses the LLM for code completions (debounced cache + refresh)."""
 
     def __init__(self, debounce_sec: float = 0.15):
         self._get_suggestion = get_suggestion_provider()
@@ -139,7 +118,7 @@ class CodeSuggestAutoSuggest(AutoSuggest):
         self._get_session_context = get_context
 
     def set_refresh_callback(self, callback: Callable[[], None] | None) -> None:
-        """Call this so we can trigger a re-request when the LLM cache updates (so ghost text appears without typing again)."""
+        """Ask prompt_toolkit to re-request the suggestion when the LLM cache updates (so ghost text appears without typing again)."""
         self._refresh_callback = callback
 
     def _worker(self) -> None:
@@ -171,7 +150,6 @@ class CodeSuggestAutoSuggest(AutoSuggest):
                     del self._cache[request]
                 if len(self._cache) > 2:
                     self._cache = {k: v for k, v in list(self._cache.items())[-2:]}
-            # So ghost text appears without typing again (LLM path).
             if result is not None and self._refresh_callback:
                 try:
                     self._refresh_callback()
@@ -183,24 +161,15 @@ class CodeSuggestAutoSuggest(AutoSuggest):
         return self._last_llm_error
 
     def get_current_suggestion_text(self, document: Document) -> str | None:
-        """Return the suggestion text for this document (for toolbar). Uses cache or Jedi sync."""
+        """Return the suggestion text for this document (from cache, for toolbar)."""
         request = (document.text, document.cursor_position)
         if not document.text.strip():
             return None
-        if _USE_JEDI_SYNC and not self._use_llm:
-            return self._get_suggestion(document.text, document.cursor_position)
         with self._lock:
             return self._cache.get(request)
 
     def get_suggestion(self, buffer, document: Document) -> Suggestion | None:
         request = (document.text, document.cursor_position)
-        # Jedi path: call synchronously so ghost text appears immediately (no debounce).
-        if _USE_JEDI_SYNC and not self._use_llm:
-            result = self._get_suggestion(document.text, document.cursor_position)
-            if result:
-                return Suggestion(result)
-            return None
-        # LLM path: use debounced cache; suggestion may appear after next keypress.
         with self._lock:
             cached = self._cache.get(request)
         with self._cv:

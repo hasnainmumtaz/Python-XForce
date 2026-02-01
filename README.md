@@ -1,9 +1,8 @@
 # xforce — Python REPL with code suggestions
 
-A custom Python REPL that uses your installed Python (e.g. 3.13.x) and adds **code suggestions** as you type: ghost text you can accept with **Tab** or **Right Arrow**.
+A custom Python REPL that uses your installed Python (e.g. 3.13.x) and adds **LLM-powered code suggestions** as you type: ghost text you can accept with **Tab** or **Right Arrow**.
 
-- **Without API key**: Jedi-based completions (identifiers, attributes).
-- **With OpenAI API key**: LLM-powered line completions (optional).
+- **OpenAI API key required** for suggestions (set in config). Multi-line completions and session context (defined names, recent code) are supported.
 
 Same Python interpreter as your `python.exe`; run this instead of `python` when you want suggestions.
 
@@ -48,12 +47,10 @@ If you prefer not to install, run from the project:
 
    (Run from the directory that contains `xforce.py` and the `src` folder, or set `PYTHONPATH` to that directory.)
 
-3. Type code at the `>>>` prompt. Suggestions appear as dim/italic ghost text after the cursor. Press **Right Arrow** or **Tab** to accept.
-   - **Jedi** (no API key): ghost text appears as you type.
-   - **LLM** (with API key): ghost text may appear after a short pause (~0.3s); if not, press **Right Arrow** once to refresh.
+3. Type code at the `>>>` prompt. With an API key set, suggestions appear as dim/italic ghost text after the cursor (after a short pause ~0.15s). Press **Right Arrow** or **Tab** to accept. The bottom toolbar shows the current suggestion or any OpenAI error.
    - If you don’t see ghost text, try running in **Windows Terminal** or another terminal that supports dim/bright colors; the suggestion is only shown when the cursor is at the end of the line.
 
-## Config (optional — for LLM suggestions)
+## Config (required for suggestions)
 
 - **Config file only**: xforce reads **only** from the config file. Environment variables are **not** used unless you explicitly allow them in the config.
 
@@ -82,10 +79,9 @@ If you prefer not to install, run from the project:
   use_env_vars=true
   ```
 
-If no API key is set (in the config, or in env when allowed), the REPL uses **Jedi** only (no API calls).
+If no API key is set (in the config, or in env when allowed), the REPL runs without suggestions.
 
 ## Requirements
 
 - Python 3.10+
-- `prompt_toolkit`, `jedi` (required)
-- `openai` (required only if you use LLM suggestions)
+- `prompt_toolkit`, `openai` (required)

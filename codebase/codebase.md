@@ -1,6 +1,6 @@
 # Codebase overview
 
-This project is a custom Python REPL with code suggestions (LLM or static via Jedi).
+This project is a custom Python REPL with LLM-powered code suggestions.
 
 ## Documentation
 
@@ -10,5 +10,5 @@ This project is a custom Python REPL with code suggestions (LLM or static via Je
 
 - **Entrypoint**: `xforce.py` – run this instead of `python` for the enhanced REPL.
 - **REPL core**: `src/repl.py` – main loop, prompt_toolkit session, execution.
-- **Suggestions**: `src/suggestions.py` – LLM and Jedi providers, debouncing.
+- **Suggestions**: `src/suggestions.py` – LLM provider, debounced cache.
 - **Config**: `src/config.py` – API key and model (env / file).
