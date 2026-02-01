@@ -1,0 +1,12 @@
+# Local config with real API key (do not commit)
+.xforce
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo

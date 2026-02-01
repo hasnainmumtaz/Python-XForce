@@ -1,0 +1,9 @@
+# xforce config — copy to ~/.xforce_config or .xforce and set your key
+# Only the config file is read; env vars are NOT used unless you set use_env_vars=true below.
+
+openai_api_key=your-openai-api-key-here
+openai_model=gpt-4o-mini
+# openai_max_tokens=120
+
+# Set to true to allow OPENAI_API_KEY and OPENAI_MODEL from the environment (optional)
+# use_env_vars=false
