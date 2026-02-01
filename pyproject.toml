@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-xforce"
+version = "0.1.0"
+description = "Python REPL with inline code suggestions (Jedi + optional LLM). Accept with Tab or Right Arrow."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "prompt_toolkit>=3.0.43",
+    "jedi>=0.19.0",
+    "openai>=1.0.0",
+]
+
+[project.scripts]
+python-xforce = "xforce:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.setuptools]
+py-modules = ["xforce"]

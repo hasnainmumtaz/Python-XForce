@@ -7,7 +7,29 @@ A custom Python REPL that uses your installed Python (e.g. 3.13.x) and adds **co
 
 Same Python interpreter as your `python.exe`; run this instead of `python` when you want suggestions.
 
+## Install for command-line use (optional)
+
+To run **`python-xforce`** from any directory:
+
+1. From the project root, install in editable mode:
+
+   ```bash
+   pip install -e .
+   ```
+
+2. Start the REPL from anywhere:
+
+   ```bash
+   python-xforce
+   ```
+
+   **Windows:** If `python-xforce` is not recognized, the installer put the script in your user Python `Scripts` folder (e.g. `%APPDATA%\Python\Python313\Scripts`). Add that folder to your [user PATH](https://learn.microsoft.com/en-us/windows/win32/procthread/environment-variables). Or use **`python -m xforce`** instead; it works without changing PATH.
+
+   **Linux/macOS:** The script is typically installed to a directory already on PATH (e.g. `~/.local/bin`). If not, add that directory to PATH or use **`python -m xforce`**.
+
 ## Run with your Python (e.g. 3.13.x)
+
+If you prefer not to install, run from the project:
 
 1. Create a virtualenv (recommended) and install dependencies:
 
@@ -18,9 +40,7 @@ Same Python interpreter as your `python.exe`; run this instead of `python` when 
    pip install -r requirements.txt
    ```
 
-2. Start the REPL:
-
-   From the project root:
+2. Start the REPL from the project root:
 
    ```bash
    python xforce.py

@@ -3,5 +3,10 @@
 
 from src.repl import run_repl
 
-if __name__ == "__main__":
+
+def main() -> None:
     run_repl()
+
+
+if __name__ == "__main__":
+    main()
